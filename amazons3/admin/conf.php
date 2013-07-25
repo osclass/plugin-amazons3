@@ -43,7 +43,11 @@
                     <div style="float: left; width: 100%;">
                     <input type="hidden" name="page" value="plugins" />
                     <input type="hidden" name="action" value="renderplugin" />
-                    <input type="hidden" name="file" value="<?php echo osc_plugin_folder(__FILE__); ?>conf.php" />
+                    <?php if(osc_version()<320) { ?>
+                        <input type="hidden" name="file" value="<?php echo osc_plugin_folder(__FILE__); ?>conf.php" />
+                    <?php } else { ?>
+                        <input type="hidden" name="route" value="amazons3-admin-conf" />
+                    <?php }; ?>
                     <input type="hidden" name="plugin_action" value="done" />
                         <label for="bucket"><?php _e('Name of the bucket (it should be a worldwide-unique name)', 'amazons3'); ?></label>
                         <br/>
