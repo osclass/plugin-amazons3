@@ -30,13 +30,14 @@ Plugin update URI: amazon-s3
     
     function amazon_upload($resource) {
         $s3 = new S3(osc_get_preference('access_key', 'amazons3'), osc_get_preference('secret_key', 'amazons3'));
+	$ext = $resource['s_extension'];
         @$s3->putBucket(osc_get_preference('bucket', 'amazons3'), S3::ACL_PUBLIC_READ);
         if(osc_keep_original_image()) {
-            $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_original.jpg', osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_original.jpg', S3::ACL_PUBLIC_READ);
+            $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_original.' . $ext, osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_original.' . $ext, S3::ACL_PUBLIC_READ);
         }
-        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '.jpg', osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '.jpg', S3::ACL_PUBLIC_READ);
-        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_preview.jpg', osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_preview.jpg', S3::ACL_PUBLIC_READ);
-        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_thumbnail.jpg', osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_thumbnail.jpg', S3::ACL_PUBLIC_READ);
+        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '.' . $ext, osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '.' . $ext, S3::ACL_PUBLIC_READ);
+        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_preview.' .$ext, osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_preview.' . $ext, S3::ACL_PUBLIC_READ);
+        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_thumbnail.' . $ext, osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_thumbnail.' . $ext, S3::ACL_PUBLIC_READ);
         amazon_unlink_resource($resource);
     }
     
@@ -46,38 +47,41 @@ Plugin update URI: amazon-s3
     
     function amazon_regenerate_image($resource) {
         $s3 = new S3(osc_get_preference('access_key', 'amazons3'), osc_get_preference('secret_key', 'amazons3'));
-        $path = $resource['pk_i_id']. "_original.jpg";
+        $ext = $resource['s_extension'];
+	$path = $resource['pk_i_id']. "_original." . $ext;
         $img = @$s3->getObject(osc_get_preference('bucket','amazons3'), $path);
         if(!$img) {
-            $path = $resource['pk_i_id']. ".jpg";
+            $path = $resource['pk_i_id']. "." . $ext;
             $img = @$s3->getObject(osc_get_preference('bucket','amazons3'), $path);
         }
         if(!$img) {
-            $path = $resource['pk_i_id']. "_thumbnail.jpg";
+            $path = $resource['pk_i_id']. "_thumbnail." . $ext;
             $img = @$s3->getObject(osc_get_preference('bucket','amazons3'), $path);
         }
         if($img) {
-            $s3->getObject(osc_get_preference('bucket','amazons3'), $path, osc_content_path() . 'uploads/' . $resource['pk_i_id'] . ".jpg");
-            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_original.jpg");
-            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. ".jpg");
-            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_preview.jpg");
-            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_thumbnail.jpg");
+            $s3->getObject(osc_get_preference('bucket','amazons3'), $path, osc_content_path() . 'uploads/' . $resource['pk_i_id'] . "." . $ext);
+            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_original." . $ext);
+            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "." . $ext);
+            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_preview." . $ext);
+            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_thumbnail." . $ext);
         }
     }
     
     function amazon_unlink_resource($resource) {
-        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_original.jpg');
-        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '.jpg');
-        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_preview.jpg');
-        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_thumbnail.jpg');
+	$ext = $resource['s_extension'];
+        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_original.' . $ext);
+        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '.' . $ext);
+        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_preview.' . $ext);
+        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_thumbnail.' . $ext);
     }
     
     function amazon_delete_from_bucket($resource) {
+	$ext = $resource['s_extension'];
         $s3 = new S3(osc_get_preference('access_key', 'amazons3'), osc_get_preference('secret_key', 'amazons3'));
-        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_original.jpg");
-        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. ".jpg");
-        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_preview.jpg");
-        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_thumbnail.jpg");
+        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_original." . $ext);
+        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "." . $ext);
+        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_preview." . $ext);
+        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_thumbnail." . $ext);
     }
     
 
