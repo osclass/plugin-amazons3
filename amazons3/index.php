@@ -32,11 +32,11 @@ Plugin update URI: amazon-s3
         $s3 = new S3(osc_get_preference('access_key', 'amazons3'), osc_get_preference('secret_key', 'amazons3'));
         @$s3->putBucket(osc_get_preference('bucket', 'amazons3'), S3::ACL_PUBLIC_READ);
         if(osc_keep_original_image()) {
-            $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_original.jpg', osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_original.jpg', S3::ACL_PUBLIC_READ);
+            $s3->putObjectFile(osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . '_original.' . $resource['s_extension'], osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_original.' . $resource['s_extension'], S3::ACL_PUBLIC_READ);
         }
-        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '.jpg', osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '.jpg', S3::ACL_PUBLIC_READ);
-        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_preview.jpg', osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_preview.jpg', S3::ACL_PUBLIC_READ);
-        $s3->putObjectFile(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_thumbnail.jpg', osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_thumbnail.jpg', S3::ACL_PUBLIC_READ);
+        $s3->putObjectFile(osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . '.' . $resource['s_extension'], osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '.' . $resource['s_extension'], S3::ACL_PUBLIC_READ);
+        $s3->putObjectFile(osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . '_preview.' . $resource['s_extension'], osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_preview.' . $resource['s_extension'], S3::ACL_PUBLIC_READ);
+        $s3->putObjectFile(osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . '_thumbnail.' . $resource['s_extension'], osc_get_preference('bucket', 'amazons3'), $resource['pk_i_id'] . '_thumbnail.' . $resource['s_extension'], S3::ACL_PUBLIC_READ);
         amazon_unlink_resource($resource);
     }
     
@@ -46,38 +46,38 @@ Plugin update URI: amazon-s3
     
     function amazon_regenerate_image($resource) {
         $s3 = new S3(osc_get_preference('access_key', 'amazons3'), osc_get_preference('secret_key', 'amazons3'));
-        $path = $resource['pk_i_id']. "_original.jpg";
+        $path = $resource['pk_i_id']. "_original." . $resource['s_extension'];
         $img = @$s3->getObject(osc_get_preference('bucket','amazons3'), $path);
         if(!$img) {
-            $path = $resource['pk_i_id']. ".jpg";
+            $path = $resource['pk_i_id']. "." . $resource['s_extension'];
             $img = @$s3->getObject(osc_get_preference('bucket','amazons3'), $path);
         }
         if(!$img) {
-            $path = $resource['pk_i_id']. "_thumbnail.jpg";
+            $path = $resource['pk_i_id']. "_thumbnail." . $resource['s_extension'];
             $img = @$s3->getObject(osc_get_preference('bucket','amazons3'), $path);
         }
         if($img) {
-            $s3->getObject(osc_get_preference('bucket','amazons3'), $path, osc_content_path() . 'uploads/' . $resource['pk_i_id'] . ".jpg");
-            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_original.jpg");
-            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. ".jpg");
-            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_preview.jpg");
-            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_thumbnail.jpg");
+            $s3->getObject(osc_get_preference('bucket','amazons3'), $path, osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . "." . $resource['s_extension']);
+            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_original." . $resource['s_extension']);
+            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "." . $resource['s_extension']);
+            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_preview." . $resource['s_extension']);
+            @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_thumbnail." . $resource['s_extension']);
         }
     }
     
     function amazon_unlink_resource($resource) {
-        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_original.jpg');
-        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '.jpg');
-        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_preview.jpg');
-        @unlink(osc_content_path() . 'uploads/' . $resource['pk_i_id'] . '_thumbnail.jpg');
+        @unlink(osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . '_original.' . $resource['s_extension']);
+        @unlink(osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . '.' . $resource['s_extension']);
+        @unlink(osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . '_preview.' . $resource['s_extension']);
+        @unlink(osc_base_path() . $resource['s_path'] . $resource['pk_i_id'] . '_thumbnail.' . $resource['s_extension']);
     }
     
     function amazon_delete_from_bucket($resource) {
         $s3 = new S3(osc_get_preference('access_key', 'amazons3'), osc_get_preference('secret_key', 'amazons3'));
-        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_original.jpg");
-        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. ".jpg");
-        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_preview.jpg");
-        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_thumbnail.jpg");
+        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_original." . $resource['s_extension']);
+        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "." . $resource['s_extension']);
+        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_preview." . $resource['s_extension']);
+        @$s3->deleteObject(osc_get_preference('bucket','amazons3'), $resource['pk_i_id']. "_thumbnail." . $resource['s_extension']);
     }
     
 
